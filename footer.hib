@@ -1,0 +1,61 @@
+</ul>
+
+<script>
+loadevents("")
+
+function loadevents(_id)
+{
+  if (_id=="")
+  {
+    var toggler = document.getElementsByClassName("caret");
+  } else
+  {
+    var toggler = document.querySelectorAll("#PH"+_id+" >*.caret");
+  }
+  var i;
+
+  for (i = 0; i < toggler.length; i++)
+  {
+    toggler[i].addEventListener("click", function()
+    {
+      this.parentElement.querySelector(".nested").classList.toggle("active");
+      this.classList.toggle("caret-down");
+      if (event.target.id!='')
+      {
+          loadXMLDoc(event.target.id);
+          loadevents(event.target.id);
+      }
+    });
+  }
+}
+
+function loadXMLDoc(targetid)
+    {
+    var xmlhttp = new XMLHttpRequest();
+
+    xmlhttp.onreadystatechange = function()
+    {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE)
+        {   // XMLHttpRequest.DONE == 4
+           if (xmlhttp.status == 200)
+           {
+               document.getElementById("PH"+targetid).innerHTML = xmlhttp.responseText;
+           }
+           else if (xmlhttp.status == 400)
+           {
+              alert('There was an error 400');
+           }
+           else
+           {
+               alert('something else other than 200 was returned');
+           }
+        }
+    };
+
+    xmlhttp.open("GET", "getchildrenbyid?id="+targetid, true);
+    xmlhttp.send();
+}
+</script>
+
+</body>
+</html>

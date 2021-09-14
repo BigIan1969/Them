@@ -1,0 +1,381 @@
+</ul>
+</div>
+
+<footer class="contolform">
+<section width=100%>
+<div id="controlform"></div>
+</section>
+</footer>
+<script>
+document.addEventListener("change", function()
+	{
+		if (event.target.matches(".controlinput"))
+		{
+			controlaction("Input","Send Keys",event.target.value);
+		}
+	})
+document.addEventListener("input", function()
+	{
+	if (event.target.matches(".selectinput"))
+		{
+			controlaction("Input","Send Keys",event.target.value);
+			event.target.value="";
+		}
+	})
+document.addEventListener("click", function()
+    {
+	  //expand tree
+      if (event.target.matches(".caret"))
+      {
+        event.target.parentElement.querySelector("*>.nested").classList.toggle("active");
+        event.target.classList.toggle("caret-down");
+		if (event.target.id!='')
+        {
+
+          //loadHTML(event.target.id);
+          //loadPIC(event.target.id);
+          loadform(event.target.id);
+
+		  var cursel=document.querySelector(".controlselected")
+		  if (cursel!=null)
+		  {
+		    cursel.classList.remove("controlselected")
+		    cursel.classList.add("controlselector")
+		  }
+		  event.target.parentElement.parentElement.classList.add("controlselected")
+		  event.target.parentElement.parentElement.classList.remove("controlselector")
+
+        }
+        else
+        {
+          if (event.target.classList.contains("selectable"))
+          {
+            var cursel=document.querySelector(".controlselected")
+            if (!!cursel)
+            {
+              cursel.classList.remove("controlselected")
+            }
+            event.target.parentElement.classList.add("controlselected")
+          }
+		  if (event.target.matches('.properties'))
+		  {
+		  }
+		  if (event.target.matches('.pic'))
+		  {
+			loadPIC(event.target.parentElement.parentElement.previousElementSibling.id);
+		  }
+		  if (event.target.matches('.children'))
+		  {
+			loadHTML(event.target.parentElement.parentElement.previousElementSibling.id);
+		  }
+        }
+      }
+      else
+      {
+        if (event.target.classList.contains("button"))
+        {
+          if (event.target.id=="getbutton")
+          {
+            eventget(this.Action);
+          }
+
+        } else if (event.target.classList.contains("controlbutton"))
+		{
+			control=event.target.parentElement.getAttribute("controlid");
+			xp=document.getElementById("XPOS"+control).value;
+			yp=document.getElementById("YPOS"+control).value;
+			controlaction("Input","Click",xp,yp);
+		} else if (event.target.classList.contains("screenshot"))
+		{
+			// get coords
+			var x = event.pageX - event.target.offsetLeft;
+			var y = event.pageY - event.target.offsetTop;
+
+			//get ratio
+			var wrat=event.target.naturalWidth/event.target.clientWidth;
+			var hrat=event.target.naturalHeight / event.target.clientHeight;
+
+            if (forcecoords === false)
+            {
+                control=event.target.parentElement.getAttribute("controlid");
+
+                //create focus event
+                var focusev = document.createEvent('Event');
+                focusev.initEvent('input', true, true);
+
+                //create blur event
+                var blurev = document.createEvent('Event');
+                blurev.initEvent('input', true, true);
+
+                //proc xpos
+                document.getElementById("XPOS"+control).dispatchEvent(focusev); //get attention of recorder
+                document.getElementById("XPOS"+control).value=x*wrat;
+                document.getElementById("XPOS"+control).dispatchEvent(blurev); //get attention of recorder
+
+                //proc ypos
+                document.getElementById("YPOS"+control).dispatchEvent(focusev); //get attention of recorder
+                document.getElementById("YPOS"+control).value=y*hrat;
+                document.getElementById("YPOS"+control).dispatchEvent(blurev); //get attention of recorder
+            } else
+            {
+                alert("In order to force their recording please input:\nXpos:"+x*wrat+"\nYpos:"+y*hrat);
+            }
+		} else if (event.target.classList.contains("ocrx_word"))
+		{
+		    var title=event.target.getAttribute("title");
+		    var tarray = title.split(" ");
+		    var x = parseInt(tarray[1])
+		    var y = parseInt(tarray[2])
+			control=getcontrolid(event.target);
+			document.getElementById("XPOS"+control).value=x;
+			document.getElementById("YPOS"+control).value=y;
+		}
+      }
+    });
+
+  //Load Children
+  function loadHTML(targetid, service)
+  {
+      var xmlhttp = new XMLHttpRequest();
+
+      xmlhttp.onreadystatechange = function()
+      {
+          if (xmlhttp.readyState == XMLHttpRequest.DONE)
+          {   // XMLHttpRequest.DONE == 4
+             if (xmlhttp.status == 200)
+             {
+                 document.getElementById("PH"+targetid).innerHTML = xmlhttp.responseText;
+             }
+             else if (xmlhttp.status == 400)
+             {
+                alert('There was an error 400');
+             }
+             else
+             {
+                 alert('something else other than 200 was returned');
+             }
+          }
+      };
+
+      xmlhttp.open("GET", "getchildrenbyid?id="+targetid, true);
+      xmlhttp.send();
+  }
+// Load Screen Shots
+function loadPIC(targetid, service)
+  {
+      var xmlhttp = new XMLHttpRequest();
+
+      xmlhttp.onreadystatechange = function()
+      {
+          if (xmlhttp.readyState == XMLHttpRequest.DONE)
+          {   // XMLHttpRequest.DONE == 4
+             if (xmlhttp.status == 200)
+             {
+                 document.getElementById("PIC"+targetid).innerHTML = xmlhttp.responseText;
+             }
+             else if (xmlhttp.status == 400)
+             {
+                alert('There was an error 400');
+             }
+             else
+             {
+                 alert('something else other than 200 was returned');
+             }
+          }
+      };
+
+      xmlhttp.open("GET", "getpic?id="+targetid, true);
+      xmlhttp.send();
+  }
+
+//Load Action Form (In Footer)
+function loadform(targetid)
+{
+    var xmlhttp = new XMLHttpRequest();
+
+    xmlhttp.onreadystatechange = function()
+    {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE)
+        {   // XMLHttpRequest.DONE == 4
+           if (xmlhttp.status == 200)
+           {
+               document.getElementById("controlform").innerHTML = xmlhttp.responseText;
+           }
+           else if (xmlhttp.status == 400)
+           {
+              alert('There was an error 400');
+           }
+           else
+           {
+               alert('something else other than 200 was returned');
+           }
+        }
+    };
+
+    xmlhttp.open("GET", "getformoutline?id="+targetid, true);
+    xmlhttp.send();
+}
+
+//Build Action Form pat I
+function eventsystemlevel()
+{
+var xmlhttp = new XMLHttpRequest();
+
+xmlhttp.onreadystatechange = function()
+{
+    if (xmlhttp.readyState == XMLHttpRequest.DONE)
+    {   // XMLHttpRequest.DONE == 4
+       if (xmlhttp.status == 200)
+       {
+           document.getElementById("formph01").innerHTML = xmlhttp.responseText;
+           document.getElementById("formph02").innerHTML = "";
+           document.getElementById("formph03").innerHTML = "";
+           document.getElementById("formph04").innerHTML = "";
+       }
+       else if (xmlhttp.status == 400)
+       {
+          alert('There was an error 400');
+       }
+       else
+       {
+           alert('something else other than 200 was returned');
+       }
+    }
+};
+
+xmlhttp.open("GET", "getactions?p1="+document.getElementById("p1").value, true);
+xmlhttp.send();
+}
+
+//Build Action Form pat II
+function eventaction()
+{
+var xmlhttp = new XMLHttpRequest();
+
+xmlhttp.onreadystatechange = function()
+{
+    if (xmlhttp.readyState == XMLHttpRequest.DONE)
+    {   // XMLHttpRequest.DONE == 4
+       if (xmlhttp.status == 200)
+       {
+           document.getElementById("formph02").innerHTML = xmlhttp.responseText;
+           document.getElementById("formph03").innerHTML = "";
+           document.getElementById("formph04").innerHTML = "";
+       }
+       else if (xmlhttp.status == 400)
+       {
+          alert('There was an error 400');
+       }
+       else
+       {
+           alert('something else other than 200 was returned');
+       }
+    }
+};
+
+xmlhttp.open("GET", "getactionfields?p1="+document.getElementById("p1").value+"&p2="+document.getElementById("p2").value, true);
+xmlhttp.send();
+}
+
+//Perform Action via GET 
+function eventget()
+{
+  var xmlhttp = new XMLHttpRequest();
+
+ xmlhttp.onreadystatechange = function()
+{ 
+  if (xmlhttp.readyState == XMLHttpRequest.DONE)
+	{   // XMLHttpRequest.DONE == 4
+	   if (xmlhttp.status == 200)
+	   {
+		   document.getElementById("formph04").innerHTML = xmlhttp.responseText;
+		   scr=document.querySelector("#formph04 SCRIPT")
+		   if (scr)
+		   {
+		        eval(scr.innerHTML);
+		   }
+	   }
+	   else if (xmlhttp.status == 400)
+	   {
+		  alert('There was an error 400');
+	   }
+	   else
+	   {
+		   alert('something else other than 200 was returned');
+	   }
+	}
+ }; 
+  control=document.getElementById("actionform").getAttribute("controlid");
+
+  if (document.getElementById("p1")==null){p1=""} else {p1=document.getElementById("p1").value}
+  if (document.getElementById("p2")==null){p2=""} else {p2=document.getElementById("p2").value}
+  if (document.getElementById("p3")==null){p3=""} else {p3=document.getElementById("p3").value}
+  if (document.getElementById("p4")==null){p4=""} else {p4=document.getElementById("p4").value}
+  if (document.getElementById("p5")==null){p5=""} else {p5=document.getElementById("p5").value}
+  
+  xmlhttp.open("GET", "action?id="+control+"&p1="+p1+"&p2="+p2+"&p3="+p3+"&p4="+p4+"&p5="+p5, true);
+  xmlhttp.send();
+
+}
+
+//Control Actions 
+function controlaction(p1,p2,p3,p4,p5)
+{
+  var xmlhttp = new XMLHttpRequest();
+
+ xmlhttp.onreadystatechange = function()
+{ 
+  if (xmlhttp.readyState == XMLHttpRequest.DONE)
+	{   // XMLHttpRequest.DONE == 4
+	   if (xmlhttp.status == 200)
+	   {
+		   document.getElementById("formph04").innerHTML = xmlhttp.responseText;
+	   }
+	   else if (xmlhttp.status == 400)
+	   {
+		  alert('There was an error 400');
+	   }
+	   else
+	   {
+		   alert('something else other than 200 was returned');
+	   }
+	}
+ }; 
+  control=event.target.parentElement.getAttribute("controlid");
+
+  if (typeof p1 === 'undefined') {p1=""}
+  if (typeof p2 === 'undefined') {p2=""}
+  if (typeof p3 === 'undefined') {p3=""}
+  if (typeof p4 === 'undefined') {p4=""}
+  if (typeof p5 === 'undefined') {p5=""}
+  
+  
+  xmlhttp.open("GET", "action?id="+control+"&p1="+p1+"&p2="+p2+"&p3="+p3+"&p4="+p4+"&p5="+p5, true);
+  xmlhttp.send();
+
+}
+//runs down parent elements until it finds one with a control id
+function getcontrolid(element)
+{
+  if (element.getAttribute("controlid"))
+  {
+    return(element.getAttribute("controlid"));
+  } else
+  {
+    return(getcontrolid(element.parentElement));
+  }
+}
+
+// find the current selected section and return the relevant control id
+function getcursel()
+{
+  return(document.querySelector(".controlselected > li > span").getAttribute("id"))
+}
+function redirect(controlid)
+{
+  location.replace('/'+controlid)
+}
+</script>
+
+</body>
+</html>
